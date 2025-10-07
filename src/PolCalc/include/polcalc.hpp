@@ -1625,6 +1625,7 @@ readXDATCARAsPOSCARFrames(const std::string& filename, const XDATParseOptions& o
 inline std::expected<POSCARData, std::string>
 readPOSCAR(const std::string& filename)
 {
+	std::println("{}", filename);
 	std::ifstream in(filename);
 	if (!in) return std::unexpected("Failed loading file: " + filename);
 
