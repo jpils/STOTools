@@ -3,9 +3,8 @@
 using namespace PolCalc;
 
 int main() {
-	for (size_t i { 0 }; i<=200000; i+=10) {
-		auto poscar = readPOSCAR("./poscars/POSCAR."+std::to_string(i)).value();
-		//auto poscar = readPOSCAR("/home/jay/Data/STOData/T21_p80_long/poscars/POSCAR."+std::to_string(i)).value();
+	for (size_t i { 0 }; i<=9100; i+=5) {
+		auto poscar = readPOSCAR("./example/poscarsT20_p80/POSCAR."+std::to_string(i)).value();
 		Positions positions_raw = poscar.m_positions_direct;
 
 		size_t N_Sr = poscar.m_counts.at(0), N_Ti = poscar.m_counts.at(1), N_O = poscar.m_counts.at(2);
@@ -29,7 +28,7 @@ int main() {
 		std::println("Writing data for config {}", i);
 		std::println();
 		helper::COUNTER = 0;
-		write("./OP/op"+std::to_string(i)+".out", obs.first);
-		write("./POL/pol"+std::to_string(i)+".out", obs.second);
+		write("./example/OP/OP_T20_p80_local/op"+std::to_string(i)+".out", obs.first);
+		write("./example/POL/POL_T20_p80_local/pol"+std::to_string(i)+".out", obs.second);
 	}
 }

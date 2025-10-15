@@ -134,14 +134,13 @@ public:
 		m_O_cart_nopbc.reserve(3);
 	}
 
-	UnitCell(AtomType type_A, AtomType type_B, double lattice_const = 3.905) {
+	UnitCell(AtomType type_A, AtomType type_B, double lattice_const = 3.84087/*3.85857*/ ) {
 		m_A_cart_nopbc.reserve(4);
 		m_O_cart_nopbc.reserve(3);
 
 		const double a { lattice_const };
-		const double c { a }; 
 
-		m_cell_volume = a*a*c;
+		m_cell_volume = a*a*a;
 
 		Eigen::Vector3d ex = Eigen::Vector3d(1, 0, 0);
 		Eigen::Vector3d ey = Eigen::Vector3d(0, 1, 0);
@@ -155,10 +154,10 @@ public:
 		};
 
 		// front lower left, back lower left, then anticlockwise
-		fill_pristine_A(type_A, - 0.5*a*ex - 0.5*a*ey - 0.5*c*ez);
-		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey - 0.5*c*ez);
-		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey + 0.5*c*ez);
-		fill_pristine_A(type_A, -0.5*a*ex - 0.5*a*ey + 0.5*c*ez);
+		fill_pristine_A(type_A, - 0.5*a*ex - 0.5*a*ey - 0.5*a*ez);
+		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey - 0.5*a*ez);
+		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey + 0.5*a*ez);
+		fill_pristine_A(type_A, -0.5*a*ex - 0.5*a*ey + 0.5*a*ez);
 
 		m_B_cart_nopbc = Atom(type_B, Position::Zero());
 
@@ -175,15 +174,14 @@ public:
 
 	UnitCell(AtomType type_A, AtomType type_B, short O_rot_sign /* = +- 1*/, 
 		  const Eigen::Quaterniond& orientation, double rot_angle = 3*M_PI/180, 
-		  double lattice_const = 3.905, AtomType type_O = AtomType::O)
+		  double lattice_const = 3.84087/*3.85857*/ , AtomType type_O = AtomType::O)
 	: m_orientation(orientation)
 	{
 		m_A_cart_nopbc.reserve(4);
 		m_O_cart_nopbc.reserve(3);
 
 		const double a { lattice_const };
-		const double c { a }; 
-		m_cell_volume = a*a*c;
+		m_cell_volume = a*a*a;
 
 		Eigen::Vector3d ex = Eigen::Vector3d(1, 0, 0);
 		Eigen::Vector3d ey = Eigen::Vector3d(0, 1, 0);
@@ -197,10 +195,10 @@ public:
 		};
 
 		// front lower left, back lower left, then anticlockwise
-		fill_pristine_A(type_A, - 0.5*a*ex - 0.5*a*ey - 0.5*c*ez);
-		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey - 0.5*c*ez);
-		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey + 0.5*c*ez);
-		fill_pristine_A(type_A, -0.5*a*ex - 0.5*a*ey + 0.5*c*ez);
+		fill_pristine_A(type_A, - 0.5*a*ex - 0.5*a*ey - 0.5*a*ez);
+		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey - 0.5*a*ez);
+		fill_pristine_A(type_A, 0.5*a*ex - 0.5*a*ey + 0.5*a*ez);
+		fill_pristine_A(type_A, -0.5*a*ex - 0.5*a*ey + 0.5*a*ez);
 
 		m_B_cart_nopbc = Atom(type_B, Position::Zero());
 
@@ -401,8 +399,8 @@ private:
 		Position DW_right_cart { cell_matrix*Position(DW_centers.z(), 0, 0) };
 		Position ref_cart { cell_matrix*ref };
 		
-		if ((ref_cart.x() <= DW_center_cart.x()+tolerance && ref_cart.x() >= DW_center_cart.x()-tolerance) ||
-			ref_cart.x() >= DW_right_cart.x()-tolerance || ref_cart.x() <= DW_left_cart.x()+tolerance) {
+		if ((ref_cart.x() <= DW_center_cart.x()+tolerance and ref_cart.x() >= DW_center_cart.x()-tolerance) or
+			ref_cart.x() >= DW_right_cart.x()-tolerance or ref_cart.x() <= DW_left_cart.x()+tolerance) {
 			m_side = DWSide::center;
 		}
 		else if (ref_cart.x() > DW_center_cart.x()) {
@@ -1263,7 +1261,7 @@ inline Eigen::Quaterniond gradientDescent(const UnitCell& pristine_UC, const Loc
 				sum += local_atoms_A.first.m_position.dot(grad_R_i*pristine_atoms_A.first.m_position);
 				sum += local_atoms_A.second.m_position.dot(grad_R_i*pristine_atoms_A.second.m_position);
 			}
-			g_coeff[i] = -2*sum/(3.905*3.905);
+			g_coeff[i] = -2*sum/(3.84087*3.84087)/*(3.85857*3.85857)*/;
 		}
 
 		return g;
@@ -1625,7 +1623,6 @@ readXDATCARAsPOSCARFrames(const std::string& filename, const XDATParseOptions& o
 inline std::expected<POSCARData, std::string>
 readPOSCAR(const std::string& filename)
 {
-	std::println("{}", filename);
 	std::ifstream in(filename);
 	if (!in) return std::unexpected("Failed loading file: " + filename);
 
@@ -1808,7 +1805,7 @@ inline std::vector<helper::LocalUC> createLocalUCs(const Atoms& A, const Atoms& 
 inline std::pair<ObservableData, ObservableData> calculateObservable(const std::vector<helper::LocalUC>& local_UCs, double threshold = 1 /*in angstroem*/) {
 	std::vector<helper::LocalUC> local_UCs_cp { local_UCs };
 	std::ranges::sort(local_UCs_cp, [](const auto& lhs, const auto& rhs) {
-		return lhs.m_B_cart_nopbc.m_position.x() < rhs.m_B_cart_nopbc.m_position.x();
+		return lhs.m_COM_cart_nopbc.x() < rhs.m_COM_cart_nopbc.x();
 	});
 
 	std::vector<bool> used(local_UCs.size(), false);
@@ -1837,11 +1834,11 @@ inline std::pair<ObservableData, ObservableData> calculateObservable(const std::
 				continue;
 			}
 
-			double new_pos { local_UCs_cp.at(i).m_B_cart_nopbc.m_position.x() };
+			double new_pos { local_UCs_cp.at(i).m_COM_cart_nopbc.x() };
 			double diff_x { std::abs(current_pos - new_pos) };
 
 			if (diff_x > threshold) {
-				break; // because nothing after would fall into the bin anyway
+				break; // because nothing after would fall into the bin anyway (sorted)
 			}
 
 			current_bin_OP.second.emplace_back(local_UCs_cp.at(i).m_local_OP_global_frame.value());
@@ -1897,13 +1894,13 @@ inline std::pair<ObservableData, ObservableData> calculateObservable(const std::
 
 };
 
-inline void calculateLocalObservables(std::vector<helper::LocalUC>& local_UCs, double step_size, bool OP = true, bool polarization = true) {
+inline void calculateLocalObservables(std::vector<helper::LocalUC>& local_UCs, double step_size, bool OP = true, bool polarization = true, std::optional<double> lattice_const = std::nullopt) {
 	// write a custom find/set initial orientation function for APBs 
 	std::vector<size_t> DW_centers_init_ids; // containing all center DWs picked befor local z axis could be determined
 	DW_centers_init_ids.reserve(20);
 
-	helper::UnitCell pristine_UC_sp { AtomType::Sr, AtomType::Ti, 1, { 1, 0, 0, 0 }, local_UCs.at(0).getLatticeConstant() }; // sigma +1 UC
-	helper::UnitCell pristine_UC_sn { AtomType::Sr, AtomType::Ti, -1, { 1, 0, 0, 0 }, local_UCs.at(0).getLatticeConstant() }; // sigma -1 UC
+	helper::UnitCell pristine_UC_sp { AtomType::Sr, AtomType::Ti, 1, { 1, 0, 0, 0 }, 3.84087/*3.85857*/}; // sigma +1 UC
+	helper::UnitCell pristine_UC_sn { AtomType::Sr, AtomType::Ti, -1, { 1, 0, 0, 0 }, 3.84087/*3.85857*/}; // sigma -1 UC
 
 	auto getUnitCellData = [&](helper::LocalUC& local_UC) {
 		helper::LocalUC local_UC_centered { local_UC.getCenteredUC() };
