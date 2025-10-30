@@ -3,7 +3,7 @@
 using namespace PolCalc;
 
 int main() {
-    auto poscar = readPOSCAR("./test/POSCAR7").value(); // or "POSCAR"
+    auto poscar = readPOSCAR("./poscars/POSCAR").value(); // or "POSCAR"
     Positions positions_raw = poscar.m_positions_direct;
 
     // If you want to derive N_Sr/N_Ti/N_O from POSCAR instead of hardcoding:
@@ -24,6 +24,7 @@ int main() {
 	calculateLocalObservables(local_UCs, 0.0005);
 	auto obs = calculateObservable(local_UCs, 0.25);
 
-	write("example/OP/op.out", obs.first);
-	write("example/POL/pol.out", obs.second);
+	write("OP/op.out", obs.first);
+	write("POL/pol.out", obs.second);
+	writeLocalOP(local_UCs);
 }

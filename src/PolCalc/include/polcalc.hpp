@@ -618,7 +618,7 @@ public:
 		return std::unexpected("Rotation not set!");
 	}
 
-	explicit LocalUC(const Atoms& A, const Atom& B, const Atoms& O, PhaseFactor phase_factor, DWType DW_type, const Eigen::Matrix3d& cell_matrix, Vector DW_center_x /*direct*/ = Vector(0.5, 0, 1), double tolerance /*angstroem*/ = 10)
+	explicit LocalUC(const Atoms& A, const Atom& B, const Atoms& O, PhaseFactor phase_factor, DWType DW_type, const Eigen::Matrix3d& cell_matrix, Vector DW_center_x /*direct*/ = Vector(0.5, 0, 0.99), double tolerance /*angstroem*/ = 10)
 		: m_B_direct_pbc(B), m_metric(cell_matrix.transpose() * cell_matrix), m_phase_factor(phase_factor), m_type(DW_type)
 	{
 
@@ -999,15 +999,25 @@ public:
 
 		Vector polarization { Vector::Zero() };
 
-		polarization.array() += (BEC_Sr*displacements.m_A_displacements.at(0).first).array();
+		for (auto& u : displacements.m_A_displacements) {
+			polarization.array() += (BEC_Sr*u.first).array();
+			polarization.array() += (BEC_Sr*u.second).array();
+		}
+
+		//polarization.array() += (BEC_Sr*displacements.m_A_displacements.at(0).first).array();
 		polarization.array() += (BEC_Ti*displacements.m_B_displacement).array();
 		polarization.array() += (BEC_Oy*displacements.m_O_displacements.at(0).first).array();
 		polarization.array() += (BEC_Oz*displacements.m_O_displacements.at(1).first).array();
 		polarization.array() += (BEC_Ox*displacements.m_O_displacements.at(2).first).array();
 
-		polarization *= elementary_charge/(reference_UC.m_cell_volume * std::pow(1e-10, 3));
+		polarization.array() += (BEC_Oy*displacements.m_O_displacements.at(0).second).array();
+		polarization.array() += (BEC_Oz*displacements.m_O_displacements.at(1).second).array();
+		polarization.array() += (BEC_Ox*displacements.m_O_displacements.at(2).second).array();
+
+		polarization *= elementary_charge/(reference_UC.m_cell_volume * 1e-30);
 
 		m_local_polarization_local_frame = polarization;
+
 		m_local_polarization_global_frame = unit_quaternion*polarization;
 	}
 
@@ -1890,7 +1900,7 @@ inline std::pair<ObservableData, ObservableData> calculateObservable(const std::
 	var(bins_OP, observable_OP);
 	var(bins_polarization, observable_polarization);
 
-	return std::make_pair(observable_OP, observable_polarization);
+	return std::make_pair(observable_OP, observable_polarization); // do ROV with CTR
 
 };
 
@@ -1934,7 +1944,7 @@ inline void calculateLocalObservables(std::vector<helper::LocalUC>& local_UCs, d
 
 	bool is_first { true };
 	for (size_t i { }; i < local_UCs.size(); i++) {
-		if (is_first && local_UCs.at(i).m_side == helper::LocalUC::DWSide::center) { // avoid artifacts due to different O placement in DW center cells
+		if (is_first and local_UCs.at(i).m_side == helper::LocalUC::DWSide::center) { // avoid artifacts due to different O placement in DW center cells
 			DW_centers_init_ids.push_back(i);
 			continue;
 		}
@@ -1967,6 +1977,22 @@ inline void write(std::string filename, const ObservableData& data) {
 	for (const auto& [center, avg, var] : std::ranges::views::zip(data.m_bin_center, data.m_observable_average, data.m_observable_variance)) {
 		out << center << ' ' << avg.x() << ' ' << avg.y() << ' ' << avg.z()
 			<< ' ' << var.x() << ' ' << var.y() << ' ' << var.z() << '\n';
+	}
+}
+
+inline void writeLocalOP(std::vector<PolCalc::helper::LocalUC>& localUCs)
+{
+	std::ofstream out { "localOP.out" };
+	if (!out) {
+		throw std::runtime_error("failed to open file");
+	}
+
+	out.setf(std::ios::scientific);
+	out << std::setprecision(8);
+
+	size_t id { 0 };
+	for (auto& puc : localUCs) {
+		out << id++ << ' ' << puc.m_local_OP_local_frame.value().x() << ' ' << puc.m_local_OP_local_frame.value().y() << ' ' << puc.m_local_OP_local_frame.value().z() << '\n';
 	}
 }
 }
