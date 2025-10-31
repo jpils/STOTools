@@ -986,35 +986,26 @@ public:
 			0, Z_On, 0,
 			0, 0, Z_Op;
 
-		auto toSIUnits = [](auto& displacements) {
-			for (auto& [first, second] : displacements) {
-				first *= 1e-10;
-				second *= 1e-10;
-			}
-		};
-
-		toSIUnits(displacements.m_A_displacements);
-		displacements.m_B_displacement *= 1e-10;
-		toSIUnits(displacements.m_O_displacements);
-
-		Vector polarization { Vector::Zero() };
+		Vector polarization_Sr { Vector::Zero() };
 
 		for (auto& u : displacements.m_A_displacements) {
-			polarization.array() += (BEC_Sr*u.first).array();
-			polarization.array() += (BEC_Sr*u.second).array();
+			polarization_Sr.array() += (BEC_Sr*u.first).array();
+			polarization_Sr.array() += (BEC_Sr*u.second).array();
 		}
 
-		//polarization.array() += (BEC_Sr*displacements.m_A_displacements.at(0).first).array();
-		polarization.array() += (BEC_Ti*displacements.m_B_displacement).array();
-		polarization.array() += (BEC_Oy*displacements.m_O_displacements.at(0).first).array();
-		polarization.array() += (BEC_Oz*displacements.m_O_displacements.at(1).first).array();
-		polarization.array() += (BEC_Ox*displacements.m_O_displacements.at(2).first).array();
+		Vector polarization_O { Vector::Zero() };
+		polarization_O.array() += (BEC_Oy*displacements.m_O_displacements.at(0).first).array();
+		polarization_O.array() += (BEC_Oz*displacements.m_O_displacements.at(1).first).array();
+		polarization_O.array() += (BEC_Ox*displacements.m_O_displacements.at(2).first).array();
 
-		polarization.array() += (BEC_Oy*displacements.m_O_displacements.at(0).second).array();
-		polarization.array() += (BEC_Oz*displacements.m_O_displacements.at(1).second).array();
-		polarization.array() += (BEC_Ox*displacements.m_O_displacements.at(2).second).array();
+		polarization_O.array() += (BEC_Oy*displacements.m_O_displacements.at(0).second).array();
+		polarization_O.array() += (BEC_Oz*displacements.m_O_displacements.at(1).second).array();
+		polarization_O.array() += (BEC_Ox*displacements.m_O_displacements.at(2).second).array();
 
-		polarization *= elementary_charge/(reference_UC.m_cell_volume * 1e-30);
+		Vector polarization;
+		polarization.array() = (BEC_Ti*displacements.m_B_displacement).array() + polarization_Sr.array() + polarization_O.array();
+		polarization *= elementary_charge/(reference_UC.m_cell_volume);
+		polarization *= 1e20;
 
 		m_local_polarization_local_frame = polarization;
 

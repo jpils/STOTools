@@ -3,9 +3,8 @@
 using namespace PolCalc;
 
 int main() {
-	for (size_t i { 0 }; i<=200000; i+=10) {
+	for (size_t i { 0 }; i<=75000; i+=10) {
 		auto poscar = readPOSCAR("./poscars/POSCAR."+std::to_string(i)).value();
-		//auto poscar = readPOSCAR("/home/jay/Data/STOData/T21_p80_long/poscars/POSCAR."+std::to_string(i)).value();
 		Positions positions_raw = poscar.m_positions_direct;
 
 		size_t N_Sr = poscar.m_counts.at(0), N_Ti = poscar.m_counts.at(1), N_O = poscar.m_counts.at(2);
@@ -20,7 +19,7 @@ int main() {
 
 		auto phase_factors = helper::findPhaseFactor(atoms.m_B, B_NNs_no_wrap);
 
-		auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, PolCalc::DWType::HT, cell_matrix);
+		auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, PolCalc::DWType::HH, cell_matrix);
 
 		std::println("POSCAR {}", i);
 		calculateLocalObservables(local_UCs, 0.0005);
