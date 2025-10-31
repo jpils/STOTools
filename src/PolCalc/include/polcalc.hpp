@@ -618,7 +618,7 @@ public:
 		return std::unexpected("Rotation not set!");
 	}
 
-	explicit LocalUC(const Atoms& A, const Atom& B, const Atoms& O, PhaseFactor phase_factor, DWType DW_type, const Eigen::Matrix3d& cell_matrix, Vector DW_center_x /*direct*/ = Vector(0.5, 0, 0.99), double tolerance /*angstroem*/ = 10)
+	explicit LocalUC(const Atoms& A, const Atom& B, const Atoms& O, PhaseFactor phase_factor, DWType DW_type, const Eigen::Matrix3d& cell_matrix, Vector DW_center_x /*direct*/ = Vector(0.5, 0, 1), double tolerance /*angstroem*/ = 10)
 		: m_B_direct_pbc(B), m_metric(cell_matrix.transpose() * cell_matrix), m_phase_factor(phase_factor), m_type(DW_type)
 	{
 
