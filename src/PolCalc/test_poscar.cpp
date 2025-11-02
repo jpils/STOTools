@@ -3,6 +3,9 @@
 using namespace PolCalc;
 
 int main() {
+	double lattice_const { 3.87711 };
+	PolCalc::DWType dw_type { PolCalc::DWType::HT  };
+
     auto poscar = readPOSCAR("./poscars/POSCAR").value(); // or "POSCAR"
     Positions positions_raw = poscar.m_positions_direct;
 
@@ -19,9 +22,9 @@ int main() {
 
 	auto phase_factors = helper::findPhaseFactor(atoms.m_B, B_NNs_no_wrap);
 
-	auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, PolCalc::DWType::HH, cell_matrix);
+	auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, dw_type, cell_matrix);
 
-	calculateLocalObservables(local_UCs, 0.0005);
+	calculateLocalObservables(local_UCs, 0.0005, lattice_const);
 	auto obs = calculateObservable(local_UCs, 0.25);
 
 	write("OP/op.out", obs.first);

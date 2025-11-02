@@ -3,7 +3,10 @@
 using namespace PolCalc;
 
 int main() {
-	for (size_t i { 0 }; i<=75000; i+=10) {
+	constexpr double lattice_const { 3.81706 };
+	PolCalc::DWType dw_type { PolCalc::DWType::HT };
+
+	for (size_t i { 0 }; i<=25000; i+=10) {
 		auto poscar = readPOSCAR("./poscars/POSCAR."+std::to_string(i)).value();
 		Positions positions_raw = poscar.m_positions_direct;
 
@@ -19,10 +22,10 @@ int main() {
 
 		auto phase_factors = helper::findPhaseFactor(atoms.m_B, B_NNs_no_wrap);
 
-		auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, PolCalc::DWType::HH, cell_matrix);
+		auto local_UCs = createLocalUCs(atoms.m_A, atoms.m_B, atoms.m_O, A_NNs, O_NNs, phase_factors, dw_type, cell_matrix);
 
 		std::println("POSCAR {}", i);
-		calculateLocalObservables(local_UCs, 0.0005);
+		calculateLocalObservables(local_UCs, 0.0005, lattice_const);
 		auto obs = calculateObservable(local_UCs);
 
 		std::println("Writing data for config {}", i);
